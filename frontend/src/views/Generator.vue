@@ -27,12 +27,55 @@
       <div class="left-panel">
         <div class="panel-header">
           <h3>教案模板</h3>
-          <el-button size="small" type="text" @click="refreshTemplates" :icon="Refresh">刷新</el-button>
+          <el-button size="small" type="text" @click="refreshTemplates" :icon="Refresh" :loading="isLoadingTemplates">刷新</el-button>
+        </div>
+
+        <!-- 模板筛选 -->
+        <div class="template-filters">
+          <div class="filter-item">
+            <label>学科筛选</label>
+            <el-select 
+              v-model="selectedSubject" 
+              placeholder="选择学科" 
+              size="small" 
+              style="width: 100%;"
+              clearable
+              @change="loadTemplates"
+            >
+              <el-option label="全部" value=""></el-option>
+              <el-option v-for="subject in subjects" :key="subject" :label="subject" :value="subject"></el-option>
+            </el-select>
+          </div>
+          <div class="filter-item">
+            <label>年级筛选</label>
+            <el-select 
+              v-model="selectedGrade" 
+              placeholder="选择年级" 
+              size="small" 
+              style="width: 100%;"
+              clearable
+              @change="loadTemplates"
+            >
+              <el-option label="全部" value=""></el-option>
+              <el-option label="小学" value="小学"></el-option>
+              <el-option label="初中" value="初中"></el-option>
+              <el-option label="高中" value="高中"></el-option>
+              <el-option label="全学段" value="全学段"></el-option>
+            </el-select>
+          </div>
         </div>
 
         <!-- 模板轮播 -->
         <div class="template-carousel">
+          <div v-if="isLoadingTemplates" class="template-loading">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span style="margin-left: 8px;">加载中...</span>
+          </div>
+          <div v-else-if="displayTemplates.length === 0" class="template-loading">
+            <span>暂无模板数据</span>
+          </div>
           <el-carousel 
+            v-else
             :autoplay="false" 
             arrow="always" 
             direction="vertical" 
@@ -40,7 +83,7 @@
             :loop="false"
             indicator-position="none"
           >
-            <el-carousel-item v-for="template in templates" :key="template.id">
+            <el-carousel-item v-for="template in displayTemplates" :key="template.id">
               <div 
                 class="template-slide"
                 :class="{ active: selectedTemplate?.id === template.id }"
@@ -50,12 +93,24 @@
                   <el-icon><Document /></el-icon>
                 </div>
                 <div class="template-content">
-                  <h4 class="template-name">{{ template.name }}</h4>
+                  <h4 class="template-name">{{ template.templateName }}</h4>
                   <div class="template-meta">
                     <el-tag size="small" type="primary">{{ template.subject }}</el-tag>
-                    <el-tag size="small" type="success">{{ template.grade }}</el-tag>
+                    <el-tag size="small" type="success">{{ template.gradeLevel }}</el-tag>
+                    <el-tag size="small" type="info">{{ template.templateType }}</el-tag>
                   </div>
                   <p class="template-desc">{{ template.description }}</p>
+                  <div class="template-tags" v-if="template.tags">
+                    <el-tag 
+                      v-for="tag in template.tags.split(',').slice(0, 3)" 
+                      :key="tag" 
+                      size="small" 
+                      type="warning"
+                      class="tag-item"
+                    >
+                      {{ tag.trim() }}
+                    </el-tag>
+                  </div>
                   <div class="template-stats">
                     <span class="usage-count">
                       <el-icon><View /></el-icon>
@@ -65,6 +120,12 @@
                       <el-icon><Star /></el-icon>
                       {{ template.rating }}分
                     </span>
+                  </div>
+                  <div class="template-actions">
+                    <el-button size="small" type="text" @click.stop="showTemplateInfo(template)">
+                      <el-icon><View /></el-icon>
+                      详情
+                    </el-button>
                   </div>
                 </div>
               </div>
@@ -77,7 +138,7 @@
       <div class="center-panel">
         <div class="panel-header">
           <h3>AI智能生成</h3>
-          <el-tag v-if="selectedTemplate" type="success" size="small">{{ selectedTemplate.name }}</el-tag>
+          <el-tag v-if="selectedTemplate" type="success" size="small">{{ selectedTemplate.templateName }}</el-tag>
         </div>
 
         <!-- 生成参数设置 -->
@@ -248,6 +309,91 @@
         </div>
       </div>
     </div>
+
+    <!-- 模板详情对话框 -->
+    <el-dialog 
+      v-model="showTemplateDetail" 
+      title="模板详细信息" 
+      width="700px"
+      :before-close="() => showTemplateDetail = false"
+    >
+      <div v-if="selectedTemplateDetail" class="template-detail-content">
+        <div class="detail-header">
+          <h3>{{ selectedTemplateDetail.templateName }}</h3>
+          <div class="detail-meta">
+            <el-tag type="primary">{{ selectedTemplateDetail.subject }}</el-tag>
+            <el-tag type="success">{{ selectedTemplateDetail.gradeLevel }}</el-tag>
+            <el-tag type="info">{{ selectedTemplateDetail.templateType }}</el-tag>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h4>模板描述</h4>
+          <p>{{ selectedTemplateDetail.description }}</p>
+        </div>
+        
+        <div class="detail-section" v-if="selectedTemplateDetail.tags">
+          <h4>标签</h4>
+          <div class="detail-tags">
+            <el-tag 
+              v-for="tag in selectedTemplateDetail.tags.split(',')" 
+              :key="tag" 
+              type="warning"
+              class="tag-item"
+            >
+              {{ tag.trim() }}
+            </el-tag>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h4>AI生成提示词</h4>
+          <div class="prompt-content">
+            <el-input 
+              type="textarea" 
+              :value="selectedTemplateDetail.aiPrompt" 
+              :rows="6" 
+              readonly
+            />
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <h4>使用统计</h4>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">使用次数</div>
+              <div class="stat-value">{{ selectedTemplateDetail.usageCount }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">用户评分</div>
+              <div class="stat-value">{{ selectedTemplateDetail.rating }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">创建时间</div>
+              <div class="stat-value">{{ new Date(selectedTemplateDetail.createTime).toLocaleDateString() }}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">更新时间</div>
+              <div class="stat-value">{{ new Date(selectedTemplateDetail.updateTime).toLocaleDateString() }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="showTemplateDetail = false">关闭</el-button>
+          <el-button 
+            type="primary" 
+            @click="selectTemplate(selectedTemplateDetail!); showTemplateDetail = false"
+            v-if="selectedTemplateDetail && selectedTemplate?.id !== selectedTemplateDetail.id"
+          >
+            选择此模板
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -257,9 +403,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Download, ArrowLeft, Refresh, Document, View, Star, Tools as Magic, 
-  Delete, User, Service as Robot
+  Delete, User, Service as Robot, Loading
 } from '@element-plus/icons-vue'
 import { generateLessonStream, formatLessonContent, saveGenerationRecord, type GenerateRequest, type StreamResponse } from '@/api/deepseek'
+import { getTemplateList, getTemplateDetail, type TemplateListResponse, type TemplateDetailResponse } from '@/api/template'
 
 const route = useRoute()
 const router = useRouter()
@@ -267,12 +414,19 @@ const router = useRouter()
 // 类型定义
 interface Template {
   id: number
-  name: string
+  templateName: string
   subject: string
-  grade: string
+  gradeLevel: string
+  templateType: string
   description: string
+  tags: string
   usageCount: number
   rating: number
+  aiPrompt: string
+  templateContent: string
+  isActive: number
+  createTime: string
+  updateTime: string
 }
 
 interface ChatMessage {
@@ -306,65 +460,27 @@ const generationParams = ref({
   specialRequirements: ''
 })
 
-// 模拟数据
+// 基础数据
 const subjects = ref(['语文', '数学', '英语', '物理', '化学', '生物', '历史', '地理', '政治'])
 const grades = ref(['小学', '初中', '高中'])
 
-const templates = ref<Template[]>([
-  {
-    id: 1,
-    name: '小学语文课文阅读教案',
-    subject: '语文',
-    grade: '小学',
-    description: '适用于小学语文课文阅读教学的标准教案模板',
-    usageCount: 1250,
-    rating: 4.8
-  },
-  {
-    id: 2,
-    name: '小学数学计算教学教案',
-    subject: '数学',
-    grade: '小学',
-    description: '适用于小学数学计算教学的教案模板',
-    usageCount: 980,
-    rating: 4.7
-  },
-  {
-    id: 3,
-    name: '初中物理实验教学教案',
-    subject: '物理',
-    grade: '初中',
-    description: '适用于初中物理实验教学的教案模板',
-    usageCount: 756,
-    rating: 4.9
-  },
-  {
-    id: 4,
-    name: '高中化学概念教学教案',
-    subject: '化学',
-    grade: '高中',
-    description: '适用于高中化学概念教学的教案模板',
-    usageCount: 623,
-    rating: 4.6
-  },
-  {
-    id: 5,
-    name: '小学英语单词教学教案',
-    subject: '英语',
-    grade: '小学',
-    description: '适用于小学英语单词教学的教案模板',
-    usageCount: 890,
-    rating: 4.5
-  }
-])
+// 模板数据
+const templates = ref<Template[]>([])
+const isLoadingTemplates = ref(false)
+const selectedTemplateDetail = ref<Template | null>(null)
+const showTemplateDetail = ref(false)
 
 // 计算属性
 const filteredTemplates = computed(() => {
   return templates.value.filter(template => {
     const subjectMatch = !selectedSubject.value || template.subject === selectedSubject.value
-    const gradeMatch = !selectedGrade.value || template.grade === selectedGrade.value
+    const gradeMatch = !selectedGrade.value || template.gradeLevel === selectedGrade.value
     return subjectMatch && gradeMatch
   })
+})
+
+const displayTemplates = computed(() => {
+  return filteredTemplates.value.length > 0 ? filteredTemplates.value : templates.value
 })
 
 const wordCount = computed(() => {
@@ -391,7 +507,148 @@ const paginatedChatHistory = computed(() => {
 // 方法
 const selectTemplate = (template: Template) => {
   selectedTemplate.value = template
-  ElMessage.success(`已选择模板：${template.name}`)
+  ElMessage.success(`已选择模板：${template.templateName}`)
+}
+
+const showTemplateInfo = async (template: Template) => {
+  try {
+    const response = await getTemplateDetail(template.id)
+    if (response.success) {
+      selectedTemplateDetail.value = response.data
+      showTemplateDetail.value = true
+    } else {
+      ElMessage.error('获取模板详情失败')
+    }
+  } catch (error) {
+    console.error('获取模板详情失败:', error)
+    // 如果后端不可用，直接使用当前模板数据
+    selectedTemplateDetail.value = template
+    showTemplateDetail.value = true
+  }
+}
+
+const loadTemplates = async () => {
+  try {
+    isLoadingTemplates.value = true
+    const response = await getTemplateList({
+      subject: selectedSubject.value,
+      grade: selectedGrade.value
+    })
+    if (response.success) {
+      templates.value = response.data
+    } else {
+      ElMessage.error('获取模板列表失败')
+    }
+  } catch (error) {
+    console.error('获取模板列表失败:', error)
+    // 如果后端不可用，使用模拟数据
+    templates.value = getMockTemplates()
+    ElMessage.warning('当前使用模拟数据，请检查后端服务')
+  } finally {
+    isLoadingTemplates.value = false
+  }
+}
+
+// 模拟模板数据
+const getMockTemplates = (): Template[] => {
+  return [
+    {
+      id: 1,
+      templateName: '通用新授课教案模板',
+      subject: '通用',
+      gradeLevel: '全学段',
+      templateType: '新授课',
+      templateContent: '',
+      aiPrompt: '请生成一份新授课教案...',
+      description: '适用于各学科新授课的通用教案模板，结构完整，易于使用',
+      tags: '新授课,通用,基础',
+      usageCount: 2850,
+      rating: 4.9,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 2,
+      templateName: '通用复习课教案模板',
+      subject: '通用',
+      gradeLevel: '全学段',
+      templateType: '复习课',
+      templateContent: '',
+      aiPrompt: '请生成一份复习课教案...',
+      description: '适用于各学科复习课的通用教案模板，注重知识梳理和能力提升',
+      tags: '复习课,通用,梳理',
+      usageCount: 1960,
+      rating: 4.8,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 3,
+      templateName: '小学语文课文阅读教案',
+      subject: '语文',
+      gradeLevel: '小学',
+      templateType: '阅读课',
+      templateContent: '',
+      aiPrompt: '请生成一份小学语文阅读课教案...',
+      description: '适用于小学语文课文阅读教学的标准教案模板',
+      tags: '语文,小学,阅读',
+      usageCount: 1250,
+      rating: 4.8,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 4,
+      templateName: '小学数学计算教学教案',
+      subject: '数学',
+      gradeLevel: '小学',
+      templateType: '计算课',
+      templateContent: '',
+      aiPrompt: '请生成一份小学数学计算教学教案...',
+      description: '适用于小学数学计算教学的教案模板，注重算理推导和思维培养',
+      tags: '数学,小学,计算',
+      usageCount: 980,
+      rating: 4.7,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 5,
+      templateName: '初中物理实验教学教案',
+      subject: '物理',
+      gradeLevel: '初中',
+      templateType: '实验课',
+      templateContent: '',
+      aiPrompt: '请生成一份初中物理实验教学教案...',
+      description: '适用于初中物理实验教学的教案模板，注重科学探究过程',
+      tags: '物理,初中,实验',
+      usageCount: 756,
+      rating: 4.9,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 6,
+      templateName: '高中化学概念教学教案',
+      subject: '化学',
+      gradeLevel: '高中',
+      templateType: '概念课',
+      templateContent: '',
+      aiPrompt: '请生成一份高中化学概念教学教案...',
+      description: '适用于高中化学概念教学的教案模板，注重核心素养培养',
+      tags: '化学,高中,概念',
+      usageCount: 623,
+      rating: 4.6,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    }
+  ]
 }
 
 const generateLesson = async () => {
@@ -485,6 +742,7 @@ const generateLesson = async () => {
 }
 
 const refreshTemplates = () => {
+  loadTemplates()
   ElMessage.info('模板列表已刷新')
 }
 
@@ -550,7 +808,10 @@ const onEditorInput = (event: Event) => {
   editorContent.value = target.innerHTML
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 首先加载模板数据
+  await loadTemplates()
+  
   // 接收从主页传递的参数
   const { content, subject, grade, templateId } = route.query
   
@@ -1284,7 +1545,144 @@ onMounted(() => {
   background-clip: content-box;
 }
 
-/* 响应式设计 */
+/* 模板详情对话框样式 */
+.template-detail-content {
+  padding: 20px 0;
+}
+
+.detail-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-header h3 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #4a5568;
+  padding-left: 8px;
+  border-left: 3px solid #409eff;
+}
+
+.detail-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.detail-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.prompt-content {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stat-item {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 模板标签样式 */
+.template-tags {
+  margin: 12px 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.template-tags .tag-item {
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+/* 模板操作按钮 */
+.template-actions {
+  margin-top: 16px;
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+/* 加载状态 */
+.template-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #94a3b8;
+}
+
+/* 筛选区域 */
+.template-filters {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f2f5;
+  background: #fafbfc;
+}
+
+.filter-item {
+  margin-bottom: 12px;
+}
+
+.filter-item label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 6px;
+}
 @media (max-width: 1400px) {
   .left-panel {
     width: 280px;

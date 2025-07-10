@@ -1,73 +1,257 @@
-# AI教案模板库
+# AI教案模板库 - 完整版
 
-## 数据库表结构设计
+## 🎯 模板分类体系
 
-### 1. 教案模板表 (lesson_templates)
+### 学段分类
+- **小学 (1-6年级)**：基础教育阶段，注重兴趣培养和基础技能
+- **初中 (7-9年级)**：义务教育阶段，注重知识体系构建
+- **高中 (10-12年级)**：高等教育预备阶段，注重深度思维培养
 
-```sql
-CREATE TABLE lesson_templates (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '模板ID',
-    template_name VARCHAR(100) NOT NULL COMMENT '模板名称',
-    subject VARCHAR(50) NOT NULL COMMENT '学科',
-    grade_level VARCHAR(20) NOT NULL COMMENT '年级',
-    template_type VARCHAR(30) NOT NULL COMMENT '模板类型',
-    template_content TEXT NOT NULL COMMENT '模板内容(JSON格式)',
-    ai_prompt TEXT NOT NULL COMMENT 'AI生成提示词',
-    description TEXT COMMENT '模板描述',
-    tags VARCHAR(500) COMMENT '标签(逗号分隔)',
-    usage_count INT DEFAULT 0 COMMENT '使用次数',
-    rating DECIMAL(3,2) DEFAULT 5.00 COMMENT '评分(1-5)',
-    is_active TINYINT(1) DEFAULT 1 COMMENT '是否激活',
-    created_by BIGINT COMMENT '创建者ID',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    
-    INDEX idx_subject (subject),
-    INDEX idx_grade (grade_level),
-    INDEX idx_type (template_type),
-    INDEX idx_tags (tags),
-    INDEX idx_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='教案模板表';
-```
+### 学科分类
+- **语文**：阅读理解、作文指导、古诗词鉴赏、文言文教学
+- **数学**：计算教学、应用题、几何证明、函数图像
+- **英语**：单词教学、语法讲解、阅读理解、口语交际
+- **科学/理科**：实验探究、概念建构、理论应用、思维培养
+- **文科**：史料分析、思辨讨论、价值观引导、文化传承
 
-### 2. 模板分类表 (template_categories)
+### 教学类型
+- **新授课**：新知识点的首次教学
+- **复习课**：知识巩固和系统梳理
+- **练习课**：技能训练和能力提升
+- **实验课**：动手操作和科学探究
+- **讨论课**：合作学习和深度思考
+
+## 📚 基础教案模板
+
+### 1. 通用新授课模板
 
 ```sql
-CREATE TABLE template_categories (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '分类ID',
-    category_name VARCHAR(50) NOT NULL COMMENT '分类名称',
-    parent_id BIGINT DEFAULT 0 COMMENT '父分类ID',
-    sort_order INT DEFAULT 0 COMMENT '排序',
-    is_active TINYINT(1) DEFAULT 1 COMMENT '是否激活',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    
-    INDEX idx_parent (parent_id),
-    INDEX idx_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板分类表';
+INSERT INTO lesson_templates (template_name, subject, grade_level, template_type, template_content, ai_prompt, description, tags) VALUES 
+('通用新授课教案模板', '通用', '全学段', '新授课', 
+'{
+  "sections": [
+    {
+      "title": "教学目标",
+      "content": "1. 知识与技能：{knowledge_skills}\n2. 过程与方法：{process_method}\n3. 情感态度价值观：{emotion_values}",
+      "required": true
+    },
+    {
+      "title": "教学重点",
+      "content": "{teaching_focus}",
+      "required": true
+    },
+    {
+      "title": "教学难点",
+      "content": "{teaching_difficulty}",
+      "required": true
+    },
+    {
+      "title": "教学准备",
+      "content": "教师准备：{teacher_preparation}\n学生准备：{student_preparation}\n教具学具：{teaching_aids}",
+      "required": true
+    },
+    {
+      "title": "教学过程",
+      "content": "一、导入新课（{intro_time}分钟）\n{intro_content}\n\n二、新知学习（{learning_time}分钟）\n{learning_content}\n\n三、巩固练习（{practice_time}分钟）\n{practice_content}\n\n四、课堂小结（{summary_time}分钟）\n{summary_content}",
+      "required": true
+    },
+    {
+      "title": "板书设计",
+      "content": "{blackboard_design}",
+      "required": true
+    },
+    {
+      "title": "作业布置",
+      "content": "{homework}",
+      "required": true
+    },
+    {
+      "title": "教学反思",
+      "content": "{teaching_reflection}",
+      "required": false
+    }
+  ]
+}',
+'请为《{lesson_title}》生成一份{grade}{subject}新授课教案：
+
+课程信息：
+- 年级：{grade}
+- 学科：{subject}
+- 课时：{duration}
+- 教学内容：{content}
+
+教学要求：
+1. 教学目标要具体明确，符合学生认知特点
+2. 重点难点要突出，并有相应的突破策略
+3. 教学过程要层次清晰，活动设计有趣有效
+4. 注重学生主体地位，体现师生互动
+5. 板书设计要简洁明了，突出重点
+6. 作业布置要有层次性和针对性
+
+请确保教案：
+- 结构完整，格式规范
+- 内容实用，可操作性强
+- 符合教学规律和学科特点
+- 体现新课程理念',
+'适用于各学科新授课的通用教案模板，结构完整，易于使用',
+'通用,新授课,教案模板,全学段,基础模板');
 ```
 
-### 3. 模板使用记录表 (template_usage_logs)
+### 2. 通用复习课模板
 
 ```sql
-CREATE TABLE template_usage_logs (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '记录ID',
-    template_id BIGINT NOT NULL COMMENT '模板ID',
-    user_id BIGINT NOT NULL COMMENT '用户ID',
-    lesson_title VARCHAR(200) COMMENT '生成的教案标题',
-    generated_content LONGTEXT COMMENT '生成的内容',
-    generation_time DECIMAL(5,2) COMMENT '生成耗时(秒)',
-    user_rating TINYINT COMMENT '用户评分(1-5)',
-    feedback TEXT COMMENT '用户反馈',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '使用时间',
-    
-    INDEX idx_template (template_id),
-    INDEX idx_user (user_id),
-    INDEX idx_time (created_at),
-    FOREIGN KEY (template_id) REFERENCES lesson_templates(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模板使用记录表';
+INSERT INTO lesson_templates (template_name, subject, grade_level, template_type, template_content, ai_prompt, description, tags) VALUES 
+('通用复习课教案模板', '通用', '全学段', '复习课', 
+'{
+  "sections": [
+    {
+      "title": "复习目标",
+      "content": "1. 知识梳理：{knowledge_review}\n2. 能力提升：{ability_improvement}\n3. 查漏补缺：{gap_filling}",
+      "required": true
+    },
+    {
+      "title": "复习重点",
+      "content": "{review_focus}",
+      "required": true
+    },
+    {
+      "title": "复习难点",
+      "content": "{review_difficulty}",
+      "required": true
+    },
+    {
+      "title": "复习过程",
+      "content": "一、知识回顾（{recall_time}分钟）\n{recall_content}\n\n二、系统梳理（{organize_time}分钟）\n{organize_content}\n\n三、重点突破（{breakthrough_time}分钟）\n{breakthrough_content}\n\n四、综合练习（{practice_time}分钟）\n{practice_content}\n\n五、总结提升（{summary_time}分钟）\n{summary_content}",
+      "required": true
+    },
+    {
+      "title": "知识网络图",
+      "content": "{knowledge_map}",
+      "required": true
+    },
+    {
+      "title": "典型例题",
+      "content": "{typical_examples}",
+      "required": true
+    },
+    {
+      "title": "易错点分析",
+      "content": "{error_analysis}",
+      "required": true
+    },
+    {
+      "title": "练习设计",
+      "content": "{exercise_design}",
+      "required": true
+    }
+  ]
+}',
+'请为《{lesson_title}》生成一份{grade}{subject}复习课教案：
+
+复习信息：
+- 年级：{grade}
+- 学科：{subject}
+- 复习范围：{review_scope}
+- 复习类型：{review_type}
+- 课时：{duration}
+
+复习要求：
+1. 突出重点知识，构建知识网络
+2. 分析易错易混点，针对性突破
+3. 设计典型例题，提升解题能力
+4. 分层练习设计，照顾不同层次学生
+5. 注重方法指导，提高学习效率
+
+请确保教案：
+- 知识体系清晰完整
+- 重难点突出明确
+- 练习设计有针对性
+- 体现复习课特点',
+'适用于各学科复习课的通用教案模板，注重知识梳理和能力提升',
+'通用,复习课,知识梳理,查漏补缺,考试复习');
 ```
 
-## 教案模板内容设计
+### 3. 通用实验课模板
+
+```sql
+INSERT INTO lesson_templates (template_name, subject, grade_level, template_type, template_content, ai_prompt, description, tags) VALUES 
+('通用实验课教案模板', '理科', '全学段', '实验课', 
+'{
+  "sections": [
+    {
+      "title": "实验目标",
+      "content": "1. 知识目标：{knowledge_goal}\n2. 能力目标：{ability_goal}\n3. 情感目标：{emotion_goal}",
+      "required": true
+    },
+    {
+      "title": "实验原理",
+      "content": "{experiment_principle}",
+      "required": true
+    },
+    {
+      "title": "实验器材",
+      "content": "{experiment_materials}",
+      "required": true
+    },
+    {
+      "title": "实验过程",
+      "content": "一、实验准备（{preparation_time}分钟）\n{preparation_content}\n\n二、实验操作（{operation_time}分钟）\n{operation_content}\n\n三、数据记录（{recording_time}分钟）\n{recording_content}\n\n四、结果分析（{analysis_time}分钟）\n{analysis_content}\n\n五、实验总结（{summary_time}分钟）\n{summary_content}",
+      "required": true
+    },
+    {
+      "title": "实验步骤",
+      "content": "{experiment_steps}",
+      "required": true
+    },
+    {
+      "title": "数据记录表",
+      "content": "{data_table}",
+      "required": true
+    },
+    {
+      "title": "注意事项",
+      "content": "{safety_notes}",
+      "required": true
+    },
+    {
+      "title": "实验结论",
+      "content": "{experiment_conclusion}",
+      "required": true
+    },
+    {
+      "title": "思考问题",
+      "content": "{thinking_questions}",
+      "required": true
+    }
+  ]
+}',
+'请为《{lesson_title}》生成一份{grade}{subject}实验课教案：
+
+实验信息：
+- 年级：{grade}
+- 学科：{subject}
+- 实验类型：{experiment_type}
+- 实验目的：{experiment_purpose}
+- 课时：{duration}
+
+实验要求：
+1. 实验原理阐述清楚
+2. 操作步骤详细具体
+3. 安全注意事项全面
+4. 数据记录表格合理
+5. 结果分析科学准确
+6. 培养科学探究精神
+
+请确保教案：
+- 安全措施到位
+- 操作步骤清晰
+- 注重过程体验
+- 培养科学思维',
+'适用于理科实验课的通用教案模板，注重安全操作和科学探究',
+'实验课,科学探究,动手操作,安全教育,理科教学');
+```
+
+## 📖 学科专业模板
 
 ### 小学语文教案模板
 
@@ -122,9 +306,8 @@ INSERT INTO lesson_templates (template_name, subject, grade_level, template_type
 
 课文信息：
 - 年级：{grade}
-- 课文类型：{text_type}
-- 主要内容：{main_content}
 - 课时安排：{class_hours}
+- 学科：{subject}
 
 教学要求：
 1. 教学目标要符合小学生认知特点，包含知识技能、过程方法、情感态度三维目标
@@ -139,9 +322,43 @@ INSERT INTO lesson_templates (template_name, subject, grade_level, template_type
 - 活动设计符合小学生特点
 - 时间分配合理
 - 重点突出，难点分散
-- 体现学生为主体的教学理念',
-'适用于小学语文课文阅读教学的标准教案模板，包含完整的教学环节设计',
+- 体现学生为主体的教学理念
+- 格式规范，层次分明
+- 内容实用，可操作性强
+
+请按照以下格式生成教案：
+
+# 《{lesson_title}》教案
+
+## 一、教学目标
+### 1. 知识与技能目标
+### 2. 过程与方法目标  
+### 3. 情感态度价值观目标
+
+## 二、教学重点
+## 三、教学难点
+## 四、教学准备
+### 1. 教师准备
+### 2. 学生准备
+
+## 五、教学过程
+### 1. 导入新课（5分钟）
+### 2. 初读感知（10分钟）
+### 3. 精读理解（20分钟）
+### 4. 拓展延伸（8分钟）
+### 5. 课堂小结（2分钟）
+
+## 六、板书设计
+## 七、作业布置
+### 1. 基础作业
+### 2. 拓展作业
+
+## 八、教学反思',
+'适用于小学语文课文阅读教学的标准教案模板',
 '小学,语文,课文阅读,教案模板,标准格式');
+```
+
+现在让我继续添加更多模板...
 ```
 
 ### 小学数学教案模板

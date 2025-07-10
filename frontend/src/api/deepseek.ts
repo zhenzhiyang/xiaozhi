@@ -27,7 +27,137 @@ export interface StreamResponse {
 export function getTemplatePrompt(templateId: number, params: GenerateRequest): string {
   // 根据模板ID获取对应的提示词模板
   const templates = {
-    1: { // 小学语文课文阅读教案
+    1: { // 通用新授课教案模板
+      prompt: `请为《{lesson_title}》生成一份{grade}{subject}新授课教案：
+
+课程信息：
+- 年级：{grade}
+- 学科：{subject}
+- 课时：{class_hours}
+- 教学内容：{content}
+
+教学要求：
+1. 教学目标要具体明确，符合学生认知特点
+2. 重点难点要突出，并有相应的突破策略
+3. 教学过程要层次清晰，活动设计有趣有效
+4. 注重学生主体地位，体现师生互动
+5. 板书设计要简洁明了，突出重点
+6. 作业布置要有层次性和针对性
+
+请确保教案：
+- 结构完整，格式规范
+- 内容实用，可操作性强
+- 符合教学规律和学科特点
+- 体现新课程理念
+
+请按照以下格式生成教案：
+
+# 《{lesson_title}》教案
+
+## 一、教学目标
+### 1. 知识与技能
+### 2. 过程与方法
+### 3. 情感态度价值观
+
+## 二、教学重点
+## 三、教学难点
+## 四、教学准备
+## 五、教学过程
+### 导入新课
+### 新知学习
+### 巩固练习
+### 课堂小结
+
+## 六、板书设计
+## 七、作业布置
+## 八、教学反思`
+    },
+    
+    2: { // 通用复习课教案模板
+      prompt: `请为《{lesson_title}》生成一份{grade}{subject}复习课教案：
+
+复习信息：
+- 年级：{grade}
+- 学科：{subject}
+- 复习范围：{review_scope}
+- 复习类型：{review_type}
+- 课时：{class_hours}
+
+复习要求：
+1. 突出重点知识，构建知识网络
+2. 分析易错易混点，针对性突破
+3. 设计典型例题，提升解题能力
+4. 分层练习设计，照顾不同层次学生
+5. 注重方法指导，提高学习效率
+
+请确保教案：
+- 知识体系清晰完整
+- 重难点突出明确
+- 练习设计有针对性
+- 体现复习课特点
+
+# 《{lesson_title}》复习课教案
+
+## 一、复习目标
+## 二、复习重点
+## 三、复习难点
+## 四、复习过程
+### 知识回顾
+### 系统梳理
+### 重点突破
+### 综合练习
+### 总结提升
+
+## 五、知识网络图
+## 六、典型例题
+## 七、易错点分析
+## 八、练习设计`
+    },
+    
+    3: { // 通用实验课教案模板
+      prompt: `请为《{lesson_title}》生成一份{grade}{subject}实验课教案：
+
+实验信息：
+- 年级：{grade}
+- 学科：{subject}
+- 实验类型：{experiment_type}
+- 实验目的：{experiment_purpose}
+- 课时：{class_hours}
+
+实验要求：
+1. 实验原理阐述清楚
+2. 操作步骤详细具体
+3. 安全注意事项全面
+4. 数据记录表格合理
+5. 结果分析科学准确
+6. 培养科学探究精神
+
+请确保教案：
+- 安全措施到位
+- 操作步骤清晰
+- 注重过程体验
+- 培养科学思维
+
+# 《{lesson_title}》实验课教案
+
+## 一、实验目标
+## 二、实验原理
+## 三、实验器材
+## 四、实验过程
+### 实验准备
+### 实验操作
+### 数据记录
+### 结果分析
+### 实验总结
+
+## 五、实验步骤
+## 六、数据记录表
+## 七、注意事项
+## 八、实验结论
+## 九、思考问题`
+    },
+    
+    4: { // 小学语文课文阅读教案
       prompt: `请根据以下信息为小学语文课文《{lesson_title}》生成一份详细的教案：
 
 课文信息：
@@ -82,7 +212,7 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
 ## 八、教学反思`
     },
     
-    2: { // 小学数学计算教学教案
+    5: { // 小学数学计算教学教案
       prompt: `请为小学数学《{lesson_title}》生成一份计算教学教案：
 
 教学信息：
@@ -135,7 +265,122 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
 ## 八、板书设计`
     },
     
-    3: { // 初中物理实验教学教案
+    6: { // 小学数学应用题教学教案
+      prompt: `请为小学数学应用题《{lesson_title}》生成教案：
+
+题目信息：
+- 年级：{grade}
+- 课时：{class_hours}
+- 学科：{subject}
+
+教学要求：
+1. 重点培养学生的数学建模能力
+2. 解题过程要体现分析→列式→解答→检验的完整步骤
+3. 注重解题策略的渗透
+4. 设计多种变式练习
+5. 体现数学来源于生活，服务于生活
+
+# 《{lesson_title}》教案
+
+## 一、教学内容
+## 二、教学目标
+## 三、教学重难点
+## 四、教学过程
+### 复习导入
+### 探究新知
+### 解题训练
+### 总结反思
+
+## 五、解题策略
+## 六、变式练习`
+    },
+    
+    7: { // 小学英语单词教学教案
+      prompt: `请为小学英语单词教学《{lesson_title}》生成教案：
+
+教学信息：
+- 年级：{grade}
+- 课时：{class_hours}
+- 学科：{subject}
+
+教学要求：
+1. 教学目标要包含语言知识、语言技能、学习策略、文化意识四个方面
+2. 遵循听说领先、读写跟上的原则
+3. 教学过程采用PPPPS模式（Presentation-Practice-Production-Summary）
+4. 活动设计要生动有趣，符合小学生特点
+5. 注重语音教学，包含单词发音指导
+6. 创设真实语言情境，让学生在语境中学习
+7. 体现任务型教学理念
+
+请确保教案：
+- 活动设计丰富多样
+- 体现交际性和实用性
+- 注重语言输入和输出平衡
+- 评价方式多元化
+- 格式规范，层次清晰
+
+请按照以下格式生成教案：
+
+# 《{lesson_title}》教案
+
+## 一、Teaching Objectives
+### 1. Language Knowledge
+### 2. Language Skills
+### 3. Learning Strategies
+### 4. Cultural Awareness
+
+## 二、Key Points
+## 三、Difficult Points
+## 四、Teaching Aids
+## 五、Teaching Procedures
+### Step 1: Warm-up (5 mins)
+### Step 2: Presentation (15 mins)
+### Step 3: Practice (15 mins)
+### Step 4: Production (8 mins)
+### Step 5: Summary (2 mins)
+
+## 六、Blackboard Design
+## 七、Homework`
+    },
+    
+    8: { // 初中语文古诗词教学教案
+      prompt: `请为初中语文古诗词《{lesson_title}》生成教案：
+
+诗词信息：
+- 年级：{grade}
+- 课时：{class_hours}
+- 学科：{subject}
+
+教学要求：
+1. 注重朗读指导，培养语感
+2. 引导学生理解诗词意境
+3. 分析诗词的艺术特色
+4. 体会诗人的思想感情
+5. 传承优秀传统文化
+
+# 《{lesson_title}》教案
+
+## 一、教学目标
+### 朗读背诵
+### 理解鉴赏
+### 情感体验
+### 文化传承
+
+## 二、教学重点
+## 三、教学难点
+## 四、教学过程
+### 导入新课
+### 初读感知
+### 品读鉴赏
+### 诵读体验
+### 拓展延伸
+
+## 五、诗词赏析
+## 六、写作背景
+## 七、艺术特色`
+    },
+    
+    9: { // 初中物理实验教学教案
       prompt: `请为初中物理实验《{lesson_title}》生成教案：
 
 实验信息：
@@ -183,7 +428,7 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
 ## 九、课堂小结`
     },
     
-    4: { // 高中化学概念教学教案
+    10: { // 高中化学概念教学教案
       prompt: `请为高中化学概念教学《{lesson_title}》生成教案：
 
 教学信息：
@@ -233,8 +478,8 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
 ## 九、课后作业`
     },
     
-    5: { // 小学英语单词教学教案
-      prompt: `请为小学英语单词教学《{lesson_title}》生成教案：
+    11: { // 高中历史专题教学教案
+      prompt: `请为高中历史专题《{lesson_title}》生成教案：
 
 教学信息：
 - 年级：{grade}
@@ -242,43 +487,79 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
 - 学科：{subject}
 
 教学要求：
-1. 教学目标要包含语言知识、语言技能、学习策略、文化意识四个方面
-2. 遵循听说领先、读写跟上的原则
-3. 教学过程采用PPPPS模式（Presentation-Practice-Production-Summary）
-4. 活动设计要生动有趣，符合小学生特点
-5. 注重语音教学，包含单词发音指导
-6. 创设真实语言情境，让学生在语境中学习
-7. 体现任务型教学理念
+1. 体现历史学科核心素养，包含史料实证、历史解释、时空观念、唯物史观、家国情怀
+2. 以史料为载体，培养学生史料实证能力
+3. 重点突出历史事件的原因、过程、结果和影响
+4. 难点要通过史料分析和问题探究来突破
+5. 教学过程要体现论从史出、史论结合的原则
+6. 问题设计要有层次性，引导学生深入思考
+7. 注重培养学生的历史思维和批判精神
 
 请确保教案：
-- 活动设计丰富多样
-- 体现交际性和实用性
-- 注重语言输入和输出平衡
-- 评价方式多元化
-- 格式规范，层次清晰
+- 史料选择典型、可信
+- 问题设计有启发性
+- 历史解释客观准确
+- 体现价值观引领
 
-请按照以下格式生成教案：
+# 《{lesson_title}》教案
+
+## 一、教学目标
+### 史料实证
+### 历史解释
+### 时空观念
+### 唯物史观
+### 家国情怀
+
+## 二、教学重点
+## 三、教学难点
+## 四、史料准备
+## 五、教学过程
+### 情境导入，激发兴趣
+### 史料研读，获取信息
+### 问题探究，深入分析
+### 历史解释，形成认识
+### 拓展延伸，升华情感
+
+## 六、史料分析
+## 七、问题设计
+## 八、课堂小结
+## 九、课后思考`
+    },
+    
+    12: { // 高中英语阅读理解教案
+      prompt: `请为高中英语阅读理解《{lesson_title}》生成教案：
+
+文章信息：
+- 年级：{grade}
+- 课时：{class_hours}
+- 学科：{subject}
+
+教学要求：
+1. 体现英语学科核心素养
+2. 培养学生的阅读策略
+3. 注重批判性思维培养
+4. 提高语言运用能力
+5. 增强文化意识
 
 # 《{lesson_title}》教案
 
 ## 一、Teaching Objectives
-### 1. Language Knowledge
-### 2. Language Skills
-### 3. Learning Strategies
-### 4. Cultural Awareness
+### Language Competence
+### Learning Ability
+### Thinking Quality
+### Cultural Awareness
 
-## 二、Key Points
-## 三、Difficult Points
-## 四、Teaching Aids
-## 五、Teaching Procedures
-### Step 1: Warm-up (5 mins)
-### Step 2: Presentation (15 mins)
-### Step 3: Practice (15 mins)
-### Step 4: Production (8 mins)
-### Step 5: Summary (2 mins)
+## 二、Key Points & Difficulties
+## 三、Teaching Procedures
+### Step 1: Lead-in
+### Step 2: Pre-reading
+### Step 3: While-reading
+### Step 4: Post-reading
+### Step 5: Summary & Homework
 
-## 六、Blackboard Design
-## 七、Homework`
+## 四、Reading Strategies
+## 五、Language Focus
+## 六、Critical Thinking`
     }
   }
   
@@ -364,7 +645,7 @@ export async function* generateLessonStream(request: GenerateRequest): AsyncGene
 
     while (true) {
       try {
-        const { done, value } = await reader.read()
+        const { done, value } = await reader!.read()
         
         if (done) {
           yield { content: '', done: true }

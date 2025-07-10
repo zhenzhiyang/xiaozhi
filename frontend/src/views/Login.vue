@@ -242,7 +242,7 @@ const canSendCode = computed(() => {
   return /^1[3-9]\d{9}$/.test(loginForm.phone)
 })
 
-let countdownTimer: NodeJS.Timeout | null = null
+let countdownTimer: number | null = null
 
 // 方法
 const toggleMode = () => {

@@ -6,7 +6,8 @@
       "Bash(npm:*)",
       "Bash(java:*)",
       "Bash(mvn:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(timeout 15 npm run dev)"
     ],
     "deny": []
   }
