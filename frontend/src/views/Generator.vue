@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-generator">
+  <div class="ai-generator generator-page">
     <!-- 顶部导航栏 -->
     <nav class="navbar">
       <div class="navbar-content">
@@ -252,7 +252,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
@@ -292,6 +292,9 @@ const lastSaved = ref('')
 const chatHistory = ref<ChatMessage[]>([])
 const currentPage = ref(1)
 const pageSize = ref(3) // 每页显示3条记录
+
+// 编辑器引用
+const editor = ref<HTMLElement | null>(null)
 
 // 生成参数
 const generationParams = ref({
@@ -438,6 +441,13 @@ const generateLesson = async () => {
         accumulatedContent += chunk.content
         // 格式化内容并实时更新编辑器
         editorContent.value = formatLessonContent(accumulatedContent)
+        
+        // 使用nextTick确保DOM更新后再滚动
+        await nextTick()
+        // 自动滚动到底部，跟随生成内容
+        if (editor.value) {
+          editor.value.scrollTop = editor.value.scrollHeight
+        }
       }
       
       if (chunk.done) {
@@ -587,8 +597,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.ai-generator {
-  min-height: 100vh;
+.ai-generator.generator-page {
+  height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   display: flex;
   flex-direction: column;
@@ -701,7 +711,6 @@ onMounted(() => {
   display: flex;
   gap: 20px;
   padding: 100px 20px 20px;
-  height: calc(100vh - 80px);
   overflow: hidden;
 }
 
@@ -718,13 +727,14 @@ onMounted(() => {
   flex-direction: column;
   overflow: hidden;
   transition: all 0.3s ease;
+  height: 100%;
+  max-height: 100%;
 }
 
 .left-panel:hover,
 .center-panel:hover,
 .right-panel:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
 }
 
 .left-panel {
@@ -1075,13 +1085,18 @@ onMounted(() => {
 
 .rich-editor {
   flex: 1;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
-  line-height: 1.6;
+  overflow-x: hidden;
+  line-height: 1.8;
   color: #2c3e50;
   background: white;
   outline: none;
-  min-height: 400px;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  scroll-behavior: smooth;
 }
 
 .editor-placeholder {
@@ -1089,32 +1104,117 @@ onMounted(() => {
   font-style: italic;
 }
 
+.rich-editor h1 {
+  color: #1a202c;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 24px 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 3px solid #409eff;
+  text-align: center;
+}
+
 .rich-editor h2 {
-  color: #2c3e50;
-  font-size: 24px;
+  color: #2d3748;
+  font-size: 22px;
   font-weight: 600;
-  margin: 20px 0 16px 0;
+  margin: 24px 0 16px 0;
   border-bottom: 2px solid #409eff;
   padding-bottom: 8px;
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .rich-editor h3 {
-  color: #2c3e50;
+  color: #4a5568;
   font-size: 18px;
   font-weight: 600;
-  margin: 16px 0 12px 0;
+  margin: 20px 0 12px 0;
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
 }
 
 .rich-editor h4 {
-  color: #2c3e50;
+  color: #4a5568;
   font-size: 16px;
   font-weight: 600;
-  margin: 12px 0 8px 0;
+  margin: 16px 0 8px 0;
+  padding-left: 8px;
+  border-left: 3px solid #64748b;
 }
 
 .rich-editor p {
+  margin: 12px 0;
+  line-height: 1.8;
+  text-align: justify;
+}
+
+.rich-editor ul,
+.rich-editor ol {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.rich-editor li {
   margin: 8px 0;
   line-height: 1.6;
+}
+
+.rich-editor strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.rich-editor em {
+  color: #4a5568;
+  font-style: italic;
+}
+
+/* 表格样式 */
+.rich-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.rich-editor th,
+.rich-editor td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rich-editor th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* 代码块样式 */
+.rich-editor code {
+  background-color: #f1f5f9;
+  color: #374151;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+.rich-editor pre {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+
+.rich-editor pre code {
+  background: none;
+  padding: 0;
 }
 
 .document-stats {
@@ -1142,22 +1242,46 @@ onMounted(() => {
 
 /* 滚动条样式 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c0c4cc;
-  border-radius: 3px;
+  background: linear-gradient(135deg, rgba(203, 213, 224, 0.8) 0%, rgba(160, 174, 192, 0.8) 100%);
+  border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #909399;
+  background: linear-gradient(135deg, rgba(160, 174, 192, 0.9) 0%, rgba(107, 114, 128, 0.9) 100%);
+}
+
+/* 编辑器专用滚动条 */
+.rich-editor::-webkit-scrollbar {
+  width: 10px;
+}
+
+.rich-editor::-webkit-scrollbar-track {
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.rich-editor::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.rich-editor::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  background-clip: content-box;
 }
 
 /* 响应式设计 */
@@ -1389,5 +1513,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
 }
 </style>

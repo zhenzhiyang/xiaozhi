@@ -299,6 +299,25 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
  */
 export async function* generateLessonStream(request: GenerateRequest): AsyncGenerator<StreamResponse> {
   try {
+    // 在没有后端的情况下，使用模拟数据进行演示
+    const mockContent = generateMockLessonContent(request)
+    const words = mockContent.split('')
+    
+    for (let i = 0; i < words.length; i++) {
+      // 模拟流式输出，每次输出几个字符
+      const chunk = words.slice(i, i + 5).join('')
+      if (chunk) {
+        yield { content: chunk, done: false }
+        // 模拟网络延迟
+        await new Promise(resolve => setTimeout(resolve, 15))
+      }
+      i += 4 // 跳过已输出的字符
+    }
+    
+    yield { content: '', done: true }
+    return
+    
+    // 以下是真实的API调用代码（当有后端时使用）
     const prompt = getTemplatePrompt(request.templateId, request)
     const finalPrompt = request.additionalRequirements 
       ? `${prompt}\n\n额外要求：${request.additionalRequirements}`
@@ -458,6 +477,96 @@ export function formatLessonContent(content: string): string {
     console.error('Error formatting lesson content:', error)
     return content // 如果格式化失败，返回原始内容
   }
+}
+
+/**
+ * 生成模拟教案内容
+ */
+function generateMockLessonContent(request: GenerateRequest): string {
+  return `# 《${request.title}》教案
+
+## 一、教学目标
+
+### 1. 知识与技能目标
+- 掌握${request.title}的基本概念和原理
+- 能够运用所学知识解决实际问题
+- 培养学生的逻辑思维和分析能力
+
+### 2. 过程与方法目标
+- 通过观察、实验、讨论等方式，体验知识的形成过程
+- 学会合作学习，提高交流表达能力
+- 培养学生主动探索的学习习惯
+
+### 3. 情感态度价值观目标
+- 激发学生对${request.subject}学科的兴趣
+- 培养严谨的科学态度和求实精神
+- 增强学生的自信心和成就感
+
+## 二、教学重点
+本节课的教学重点是${request.title}的核心概念理解和基本方法的掌握。
+
+## 三、教学难点
+教学难点在于概念的抽象性和实际应用的结合，需要通过具体实例来帮助学生理解。
+
+## 四、教学准备
+
+### 1. 教师准备
+- 教学课件和多媒体设备
+- 相关教具和实验材料
+- 练习题和测试题
+
+### 2. 学生准备
+- 预习相关内容
+- 准备笔记本和文具
+- 复习前置知识
+
+## 五、教学过程
+
+### 1. 导入新课（5分钟）
+通过生活中的实例引入本节课要学习的内容，激发学生的学习兴趣。
+
+**设计意图**：创设情境，让学生在熟悉的生活场景中感受到学习的必要性。
+
+### 2. 新知探索（25分钟）
+#### （1）概念讲解（10分钟）
+详细介绍${request.title}的定义、特点和基本原理。
+
+#### （2）例题分析（10分钟）
+通过典型例题的分析，帮助学生理解概念的应用。
+
+#### （3）学生练习（5分钟）
+让学生独立完成简单练习，巩固所学知识。
+
+### 3. 深化理解（12分钟）
+组织学生进行小组讨论，分享学习心得，解决疑难问题。
+
+### 4. 课堂小结（3分钟）
+总结本节课的主要内容，强调重点和难点。
+
+## 六、板书设计
+
+\`\`\`
+${request.title}
+├── 定义：...
+├── 特点：...
+├── 应用：...
+└── 注意事项：...
+\`\`\`
+
+## 七、作业布置
+
+### 1. 基础作业
+完成教材第X页练习题1-5题。
+
+### 2. 拓展作业
+查找生活中关于${request.title}的实际应用实例，下节课分享。
+
+## 八、教学反思
+本节课通过多种教学方法相结合，帮助学生理解了${request.title}的相关知识。在今后的教学中，应该更多地关注学生的个体差异，采用分层教学的方法。
+
+---
+
+**备注**: 本教案适用于${request.grade}${request.subject}教学，课时安排为${request.duration}。`
 }
 
 /**
