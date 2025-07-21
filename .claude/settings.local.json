@@ -7,7 +7,18 @@
       "Bash(java:*)",
       "Bash(mvn:*)",
       "Bash(mysql:*)",
-      "Bash(timeout 15 npm run dev)"
+      "Bash(timeout 15 npm run dev)",
+      "Bash(setup_database_custom.bat)",
+      "Bash(find:*)",
+      "Bash(where:*)",
+      "Bash(whereis:*)",
+      "Bash(\"D:/Program Files/MySQL/MySQL Server 8.4/bin/mysql.exe\":*)",
+      "Bash(cmd:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(rm:*)",
+      "Bash(del:*)"
     ],
     "deny": []
   }

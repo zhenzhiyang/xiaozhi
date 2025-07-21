@@ -5,6 +5,7 @@ D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\service\impl\LessonTemplate
 D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\util\Constants.java
 D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\service\LessonTemplateService.java
 D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\config\CorsConfig.java
+D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\config\SecurityConfig.java
 D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\config\SwaggerConfig.java
 D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\dto\GenerateLessonRequest.java
 D:\AI_tools\ai_thub\backend\src\main\java\com\aithub\entity\Lesson.java

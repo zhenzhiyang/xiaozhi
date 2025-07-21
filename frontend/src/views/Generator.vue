@@ -27,7 +27,7 @@
       <div class="left-panel">
         <div class="panel-header">
           <h3>教案模板</h3>
-          <el-button size="small" type="text" @click="refreshTemplates" :icon="Refresh" :loading="isLoadingTemplates">刷新</el-button>
+          <el-button size="small" text @click="refreshTemplates" :icon="Refresh" :loading="isLoadingTemplates">刷新</el-button>
         </div>
 
         <!-- 模板筛选 -->
@@ -65,72 +65,69 @@
           </div>
         </div>
 
-        <!-- 模板轮播 -->
-        <div class="template-carousel">
+        <!-- 模板列表 - 紧凑设计 -->
+        <div class="template-list">
           <div v-if="isLoadingTemplates" class="template-loading">
             <el-icon class="is-loading"><Loading /></el-icon>
             <span style="margin-left: 8px;">加载中...</span>
           </div>
           <div v-else-if="displayTemplates.length === 0" class="template-loading">
-            <span>暂无模板数据</span>
+            <el-icon><Document /></el-icon>
+            <p>暂无模板数据</p>
+            <p style="font-size: 12px; color: #909399; margin-top: 8px;">
+              请检查网络连接或刷新页面
+            </p>
           </div>
-          <el-carousel 
-            v-else
-            :autoplay="false" 
-            arrow="always" 
-            direction="vertical" 
-            height="100%"
-            :loop="false"
-            indicator-position="none"
-          >
-            <el-carousel-item v-for="template in displayTemplates" :key="template.id">
-              <div 
-                class="template-slide"
-                :class="{ active: selectedTemplate?.id === template.id }"
-                @click="selectTemplate(template)"
-              >
-                <div class="template-icon">
-                  <el-icon><Document /></el-icon>
+          <div v-else class="template-list-scroll">
+            <div 
+              v-for="template in displayTemplates" 
+              :key="template.id"
+              class="template-card-compact"
+              :class="{ active: selectedTemplate?.id === template.id }"
+              @click="selectTemplate(template)"
+            >
+              <!-- 左侧图标 -->
+              <div class="card-icon-mini">
+                <el-icon :size="16"><Document /></el-icon>
+              </div>
+              
+              <!-- 内容区 -->
+              <div class="card-content-mini">
+                <!-- 标题 -->
+                <h4 class="card-title-mini" :title="template.templateName">{{ template.templateName }}</h4>
+                
+                <!-- 标签 -->
+                <div class="card-tags-mini">
+                  <el-tag size="small" type="primary" effect="plain">{{ template.subject }}</el-tag>
+                  <el-tag size="small" type="success" effect="plain">{{ template.gradeLevel }}</el-tag>
                 </div>
-                <div class="template-content">
-                  <h4 class="template-name">{{ template.templateName }}</h4>
-                  <div class="template-meta">
-                    <el-tag size="small" type="primary">{{ template.subject }}</el-tag>
-                    <el-tag size="small" type="success">{{ template.gradeLevel }}</el-tag>
-                    <el-tag size="small" type="info">{{ template.templateType }}</el-tag>
-                  </div>
-                  <p class="template-desc">{{ template.description }}</p>
-                  <div class="template-tags" v-if="template.tags">
-                    <el-tag 
-                      v-for="tag in template.tags.split(',').slice(0, 3)" 
-                      :key="tag" 
-                      size="small" 
-                      type="warning"
-                      class="tag-item"
-                    >
-                      {{ tag.trim() }}
-                    </el-tag>
-                  </div>
-                  <div class="template-stats">
-                    <span class="usage-count">
-                      <el-icon><View /></el-icon>
-                      {{ template.usageCount }}次使用
-                    </span>
-                    <span class="rating">
-                      <el-icon><Star /></el-icon>
-                      {{ template.rating }}分
-                    </span>
-                  </div>
-                  <div class="template-actions">
-                    <el-button size="small" type="text" @click.stop="showTemplateInfo(template)">
-                      <el-icon><View /></el-icon>
-                      详情
-                    </el-button>
-                  </div>
+                
+                <!-- 描述 -->
+                <p class="card-desc-mini" :title="template.description">{{ template.description }}</p>
+                
+                <!-- 统计信息 -->
+                <div class="card-stats-mini">
+                  <span class="stat-mini">
+                    <el-icon size="12"><View /></el-icon>
+                    <span>{{ template.usageCount }}</span>
+                  </span>
+                  <span class="stat-mini">
+                    <el-icon size="12"><Star /></el-icon>
+                    <span>{{ template.rating }}</span>
+                  </span>
+                  <el-button 
+                    size="small" 
+                    text 
+                    @click.stop="showTemplateInfo(template)"
+                    class="detail-btn-mini"
+                  >
+                    <el-icon size="12"><InfoFilled /></el-icon>
+                    详情
+                  </el-button>
                 </div>
               </div>
-            </el-carousel-item>
-          </el-carousel>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -217,10 +214,10 @@
           <div class="chat-header">
             <span>生成记录 ({{ chatHistory.length }}条)</span>
             <div class="chat-actions">
-              <el-button size="small" type="text" @click="prevPage" :disabled="currentPage === 1">上一页</el-button>
+              <el-button size="small" text @click="prevPage" :disabled="currentPage === 1">上一页</el-button>
               <span class="page-info">{{ currentPage }}/{{ totalPages }}</span>
-              <el-button size="small" type="text" @click="nextPage" :disabled="currentPage === totalPages">下一页</el-button>
-              <el-button size="small" type="text" @click="clearHistory" :icon="Delete">清空</el-button>
+              <el-button size="small" text @click="nextPage" :disabled="currentPage === totalPages">下一页</el-button>
+              <el-button size="small" text @click="clearHistory" :icon="Delete">清空</el-button>
             </div>
           </div>
           <div class="chat-messages">
@@ -252,9 +249,9 @@
         <div class="panel-header">
           <h3>教案编辑器</h3>
           <div class="editor-actions">
-            <el-button size="small" type="text" @click="previewLesson" :icon="View">预览</el-button>
-            <el-button size="small" type="text" @click="exportLesson" :icon="Download">导出</el-button>
-            <el-button size="small" type="text" @click="clearEditor" :icon="Delete">清空</el-button>
+            <el-button size="small" text @click="previewLesson" :icon="View">预览</el-button>
+            <el-button size="small" text @click="exportLesson" :icon="Download">导出</el-button>
+            <el-button size="small" text @click="clearEditor" :icon="Delete">清空</el-button>
           </div>
         </div>
 
@@ -310,86 +307,90 @@
       </div>
     </div>
 
-    <!-- 模板详情对话框 -->
+    <!-- 模板详情对话框 - 紧凑设计 -->
     <el-dialog 
       v-model="showTemplateDetail" 
-      title="模板详细信息" 
-      width="700px"
+      title="模板详情" 
+      width="500px"
       :before-close="() => showTemplateDetail = false"
+      class="compact-dialog"
     >
-      <div v-if="selectedTemplateDetail" class="template-detail-content">
-        <div class="detail-header">
-          <h3>{{ selectedTemplateDetail.templateName }}</h3>
-          <div class="detail-meta">
-            <el-tag type="primary">{{ selectedTemplateDetail.subject }}</el-tag>
-            <el-tag type="success">{{ selectedTemplateDetail.gradeLevel }}</el-tag>
-            <el-tag type="info">{{ selectedTemplateDetail.templateType }}</el-tag>
+      <div v-if="selectedTemplateDetail" class="template-detail-compact">
+        <!-- 基本信息 -->
+        <div class="detail-header-compact">
+          <h4>{{ selectedTemplateDetail.templateName }}</h4>
+          <div class="detail-tags-compact">
+            <el-tag size="small" type="primary" effect="plain">{{ selectedTemplateDetail.subject }}</el-tag>
+            <el-tag size="small" type="success" effect="plain">{{ selectedTemplateDetail.gradeLevel }}</el-tag>
+            <el-tag size="small" type="info" effect="plain">{{ selectedTemplateDetail.templateType }}</el-tag>
           </div>
         </div>
         
-        <div class="detail-section">
-          <h4>模板描述</h4>
-          <p>{{ selectedTemplateDetail.description }}</p>
+        <!-- 描述 -->
+        <div class="detail-section-compact">
+          <div class="section-title">描述</div>
+          <p class="detail-desc">{{ selectedTemplateDetail.description }}</p>
         </div>
         
-        <div class="detail-section" v-if="selectedTemplateDetail.tags">
-          <h4>标签</h4>
-          <div class="detail-tags">
+        <!-- 统计信息 -->
+        <div class="detail-section-compact">
+          <div class="section-title">使用统计</div>
+          <div class="stats-row">
+            <span class="stat-item-compact">
+              <strong>{{ selectedTemplateDetail.usageCount }}</strong> 次使用
+            </span>
+            <span class="stat-item-compact">
+              <strong>{{ selectedTemplateDetail.rating }}</strong> 分
+            </span>
+            <span class="stat-item-compact">
+              <strong>{{ new Date(selectedTemplateDetail.createTime).toLocaleDateString() }}</strong> 创建
+            </span>
+          </div>
+        </div>
+        
+        <!-- 标签 -->
+        <div class="detail-section-compact" v-if="selectedTemplateDetail.tags">
+          <div class="section-title">标签</div>
+          <div class="tags-compact">
             <el-tag 
               v-for="tag in selectedTemplateDetail.tags.split(',')" 
               :key="tag" 
+              size="small"
               type="warning"
-              class="tag-item"
+              effect="light"
             >
               {{ tag.trim() }}
             </el-tag>
           </div>
         </div>
         
-        <div class="detail-section">
-          <h4>AI生成提示词</h4>
-          <div class="prompt-content">
-            <el-input 
-              type="textarea" 
-              :value="selectedTemplateDetail.aiPrompt" 
-              :rows="6" 
-              readonly
-            />
-          </div>
-        </div>
-        
-        <div class="detail-section">
-          <h4>使用统计</h4>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-label">使用次数</div>
-              <div class="stat-value">{{ selectedTemplateDetail.usageCount }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">用户评分</div>
-              <div class="stat-value">{{ selectedTemplateDetail.rating }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">创建时间</div>
-              <div class="stat-value">{{ new Date(selectedTemplateDetail.createTime).toLocaleDateString() }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">更新时间</div>
-              <div class="stat-value">{{ new Date(selectedTemplateDetail.updateTime).toLocaleDateString() }}</div>
-            </div>
+        <!-- 提示词预览 -->
+        <div class="detail-section-compact">
+          <div class="section-title">AI提示词</div>
+          <div class="prompt-preview">
+            {{ selectedTemplateDetail.aiPrompt.substring(0, 100) }}...
+            <el-button 
+              size="small" 
+              text 
+              type="primary"
+              @click="copyPrompt(selectedTemplateDetail.aiPrompt)"
+            >
+              复制
+            </el-button>
           </div>
         </div>
       </div>
       
       <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="showTemplateDetail = false">关闭</el-button>
+        <div class="dialog-footer-compact">
+          <el-button size="small" @click="showTemplateDetail = false">取消</el-button>
           <el-button 
             type="primary" 
+            size="small"
             @click="selectTemplate(selectedTemplateDetail!); showTemplateDetail = false"
             v-if="selectedTemplateDetail && selectedTemplate?.id !== selectedTemplateDetail.id"
           >
-            选择此模板
+            使用模板
           </el-button>
         </div>
       </template>
@@ -461,7 +462,7 @@ const generationParams = ref({
 })
 
 // 基础数据
-const subjects = ref(['语文', '数学', '英语', '物理', '化学', '生物', '历史', '地理', '政治'])
+const subjects = ref(['语文', '数学', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '科学', '通用', '理科', '道法', '音乐', '美术', '体育', '信息技术', '综合实践'])
 const grades = ref(['小学', '初中', '高中'])
 
 // 模板数据
@@ -539,11 +540,44 @@ const loadTemplates = async () => {
     } else {
       ElMessage.error('获取模板列表失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取模板列表失败:', error)
-    // 如果后端不可用，使用模拟数据
-    templates.value = getMockTemplates()
-    ElMessage.warning('当前使用模拟数据，请检查后端服务')
+    ElMessage.error('获取模板列表失败，请检查网络连接')
+    
+    // 只有在明确无法连接服务器时才使用模拟数据
+    const isNetworkError = error.message?.includes('Network') || 
+                          error.message?.includes('timeout') ||
+                          error.message?.includes('fetch')
+    
+    if (isNetworkError) {
+      templates.value = getMockTemplates()
+      ElMessage.warning({
+        message: '网络连接失败，当前使用演示数据',
+        duration: 3000,
+        showClose: true
+      })
+    }
+    
+    // 记录错误到本地存储，便于用户反馈
+    const errorLog = {
+      timestamp: new Date().toISOString(),
+      type: errorType,
+      message: error.message,
+      url: window.location.href,
+      userAgent: navigator.userAgent
+    }
+    
+    try {
+      const existingLogs = JSON.parse(localStorage.getItem('errorLogs') || '[]')
+      existingLogs.unshift(errorLog)
+      // 只保留最近10条错误日志
+      if (existingLogs.length > 10) {
+        existingLogs.splice(10)
+      }
+      localStorage.setItem('errorLogs', JSON.stringify(existingLogs))
+    } catch (storageError) {
+      console.warn('无法保存错误日志到本地存储:', storageError)
+    }
   } finally {
     isLoadingTemplates.value = false
   }
@@ -554,46 +588,14 @@ const getMockTemplates = (): Template[] => {
   return [
     {
       id: 1,
-      templateName: '通用新授课教案模板',
-      subject: '通用',
-      gradeLevel: '全学段',
-      templateType: '新授课',
-      templateContent: '',
-      aiPrompt: '请生成一份新授课教案...',
-      description: '适用于各学科新授课的通用教案模板，结构完整，易于使用',
-      tags: '新授课,通用,基础',
-      usageCount: 2850,
-      rating: 4.9,
-      isActive: 1,
-      createTime: new Date().toISOString(),
-      updateTime: new Date().toISOString()
-    },
-    {
-      id: 2,
-      templateName: '通用复习课教案模板',
-      subject: '通用',
-      gradeLevel: '全学段',
-      templateType: '复习课',
-      templateContent: '',
-      aiPrompt: '请生成一份复习课教案...',
-      description: '适用于各学科复习课的通用教案模板，注重知识梳理和能力提升',
-      tags: '复习课,通用,梳理',
-      usageCount: 1960,
-      rating: 4.8,
-      isActive: 1,
-      createTime: new Date().toISOString(),
-      updateTime: new Date().toISOString()
-    },
-    {
-      id: 3,
       templateName: '小学语文课文阅读教案',
       subject: '语文',
       gradeLevel: '小学',
-      templateType: '阅读课',
+      templateType: '课文阅读',
       templateContent: '',
-      aiPrompt: '请生成一份小学语文阅读课教案...',
-      description: '适用于小学语文课文阅读教学的标准教案模板',
-      tags: '语文,小学,阅读',
+      aiPrompt: '请根据以下信息为小学语文课文生成一份详细的教案...',
+      description: '适用于小学语文课文阅读教学的标准教案模板，包含完整的教学环节设计',
+      tags: '小学,语文,课文阅读,教案模板,标准格式',
       usageCount: 1250,
       rating: 4.8,
       isActive: 1,
@@ -601,17 +603,129 @@ const getMockTemplates = (): Template[] => {
       updateTime: new Date().toISOString()
     },
     {
-      id: 4,
+      id: 2,
       templateName: '小学数学计算教学教案',
       subject: '数学',
       gradeLevel: '小学',
-      templateType: '计算课',
+      templateType: '计算教学',
       templateContent: '',
-      aiPrompt: '请生成一份小学数学计算教学教案...',
+      aiPrompt: '请为小学数学计算教学生成一份详细的教案...',
       description: '适用于小学数学计算教学的教案模板，注重算理推导和思维培养',
-      tags: '数学,小学,计算',
+      tags: '小学,数学,计算教学,算理,思维培养',
       usageCount: 980,
       rating: 4.7,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 3,
+      templateName: '初中物理实验教学教案',
+      subject: '物理',
+      gradeLevel: '初中',
+      templateType: '实验教学',
+      templateContent: '',
+      aiPrompt: '请为初中物理实验教学生成一份详细的教案...',
+      description: '适用于初中物理实验教学的教案模板，注重科学探究过程',
+      tags: '初中,物理,实验教学,科学探究,安全操作',
+      usageCount: 756,
+      rating: 4.9,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 4,
+      templateName: '高中化学概念教学教案',
+      subject: '化学',
+      gradeLevel: '高中',
+      templateType: '概念教学',
+      templateContent: '',
+      aiPrompt: '请为高中化学概念教学生成一份详细的教案...',
+      description: '适用于高中化学概念教学的教案模板，注重核心素养培养',
+      tags: '高中,化学,概念教学,核心素养,思维培养',
+      usageCount: 623,
+      rating: 4.6,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 5,
+      templateName: '小学英语单词教学教案',
+      subject: '英语',
+      gradeLevel: '小学',
+      templateType: '单词教学',
+      templateContent: '',
+      aiPrompt: '请为小学英语单词教学生成一份详细的教案...',
+      description: '适用于小学英语单词教学的教案模板，遵循PPPPS教学模式',
+      tags: '小学,英语,单词教学,PPPPS,交际教学',
+      usageCount: 890,
+      rating: 4.5,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 6,
+      templateName: '通用新授课教案模板',
+      subject: '通用',
+      gradeLevel: '全学段',
+      templateType: '新授课',
+      templateContent: '',
+      aiPrompt: '请生成一份新授课教案...',
+      description: '适用于各学科新授课的通用教案模板，结构完整，易于使用',
+      tags: '通用,新授课,教案模板,全学段,基础模板',
+      usageCount: 1563,
+      rating: 4.8,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 7,
+      templateName: '通用复习课教案模板',
+      subject: '通用',
+      gradeLevel: '全学段',
+      templateType: '复习课',
+      templateContent: '',
+      aiPrompt: '请生成一份复习课教案...',
+      description: '适用于各学科复习课的通用教案模板，注重知识梳理和能力提升',
+      tags: '通用,复习课,知识梳理,查漏补缺,考试复习',
+      usageCount: 1123,
+      rating: 4.6,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 8,
+      templateName: '初中语文古诗词教学教案',
+      subject: '语文',
+      gradeLevel: '初中',
+      templateType: '古诗词教学',
+      templateContent: '',
+      aiPrompt: '请为初中语文古诗词教学生成一份详细的教案...',
+      description: '初中语文古诗词教学专用模板，注重朗读、理解、鉴赏、体验',
+      tags: '初中,语文,古诗词,鉴赏,朗读,传统文化',
+      usageCount: 567,
+      rating: 4.7,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 9,
+      templateName: '高中英语阅读理解教案',
+      subject: '英语',
+      gradeLevel: '高中',
+      templateType: '阅读理解',
+      templateContent: '',
+      aiPrompt: '请为高中英语阅读理解教学生成一份详细的教案...',
+      description: '高中英语阅读理解专用教案模板，注重核心素养和思维品质培养',
+      tags: '高中,英语,阅读理解,核心素养,批判思维',
+      usageCount: 445,
+      rating: 4.8,
       isActive: 1,
       createTime: new Date().toISOString(),
       updateTime: new Date().toISOString()
@@ -644,6 +758,70 @@ const getMockTemplates = (): Template[] => {
       tags: '化学,高中,概念',
       usageCount: 623,
       rating: 4.6,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 7,
+      templateName: '通用新授课教案模板',
+      subject: '通用',
+      gradeLevel: '全学段',
+      templateType: '新授课',
+      templateContent: '',
+      aiPrompt: '请为新授课生成一份教案...',
+      description: '适用于各学科新授课的通用教案模板，结构完整，易于使用',
+      tags: '通用,新授课,教案模板,全学段,基础模板',
+      usageCount: 1563,
+      rating: 4.8,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 8,
+      templateName: '通用复习课教案模板',
+      subject: '通用',
+      gradeLevel: '全学段',
+      templateType: '复习课',
+      templateContent: '',
+      aiPrompt: '请为复习课生成一份教案...',
+      description: '适用于各学科复习课的通用教案模板，注重知识梳理和能力提升',
+      tags: '通用,复习课,知识梳理,查漏补缺,考试复习',
+      usageCount: 1123,
+      rating: 4.6,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 9,
+      templateName: '初中语文古诗词教学教案',
+      subject: '语文',
+      gradeLevel: '初中',
+      templateType: '古诗词教学',
+      templateContent: '',
+      aiPrompt: '请为初中语文古诗词生成教案...',
+      description: '初中语文古诗词教学专用模板，注重朗读、理解、鉴赏、体验',
+      tags: '初中,语文,古诗词,鉴赏,朗读,传统文化',
+      usageCount: 567,
+      rating: 4.7,
+      isActive: 1,
+      createTime: new Date().toISOString(),
+      updateTime: new Date().toISOString()
+    },
+    {
+      id: 10,
+      templateName: '高中英语阅读理解教案',
+      subject: '英语',
+      gradeLevel: '高中',
+      templateType: '阅读理解',
+      templateContent: '',
+      aiPrompt: '请为高中英语阅读理解生成教案...',
+      description: '高中英语阅读理解专用教案模板，注重核心素养和思维品质培养',
+      tags: '高中,英语,阅读理解,核心素养,批判思维',
+      usageCount: 445,
+      rating: 4.8,
       isActive: 1,
       createTime: new Date().toISOString(),
       updateTime: new Date().toISOString()
@@ -796,6 +974,27 @@ const clearEditor = async () => {
     ElMessage.success('编辑器已清空')
   } catch {
     // 用户取消
+  }
+}
+
+const copyPrompt = async (prompt: string) => {
+  try {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(prompt)
+      ElMessage.success('AI提示词已复制到剪贴板')
+    } else {
+      // 降级方案
+      const textArea = document.createElement('textarea')
+      textArea.value = prompt
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      ElMessage.success('AI提示词已复制到剪贴板')
+    }
+  } catch (error) {
+    console.error('复制失败:', error)
+    ElMessage.error('复制失败，请手动复制')
   }
 }
 
@@ -1035,25 +1234,285 @@ onMounted(async () => {
 }
 
 /* 左侧模板区域 */
-.template-carousel {
+.template-list {
   flex: 1;
-  padding: 0;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.template-list-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.template-card-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+  margin-bottom: 4px;
+  min-height: 52px;
+}
+
+.template-card-compact:hover {
+  background: rgba(245, 247, 250, 0.9);
+  border-color: rgba(228, 231, 237, 0.6);
+  transform: translateY(-0.5px);
+}
+
+.template-card-compact.active {
+  background: linear-gradient(135deg, rgba(236, 245, 255, 0.95) 0%, rgba(224, 242, 254, 0.95) 100%);
+  border-color: #409eff;
+  box-shadow: 0 1px 4px rgba(64, 158, 255, 0.15);
+}
+
+.card-icon-mini {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.card-content-mini {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title-mini {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-tags-mini {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.card-tags-mini .el-tag {
+  font-size: 9px;
+  padding: 0px 4px;
+  height: 15px;
+  line-height: 13px;
+  border-radius: 7px;
+}
+
+.card-desc-mini {
+  font-size: 10px;
+  color: #606266;
+  margin: 0;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 12px;
+}
+
+.card-stats-mini {
+  display: flex;
+  gap: 6px;
+  font-size: 9px;
+  color: #909399;
+  align-items: center;
+  margin-top: 1px;
+}
+
+.stat-mini {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.stat-mini .el-icon {
+  font-size: 10px;
+}
+
+.detail-btn-mini {
+  padding: 2px 4px !important;
+  font-size: 9px !important;
+  color: #409eff;
+}
+
+.detail-btn-mini:hover {
+  color: #337ecc;
+}
+
+/* 现代化模板设计 */
+
+.template-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #409eff, #337ecc);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.template-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(64, 158, 255, 0.15);
+  border-color: rgba(64, 158, 255, 0.3);
+}
+
+.template-item:hover::before {
+  opacity: 1;
+}
+
+.template-item.active {
+  background: linear-gradient(135deg, rgba(236, 245, 255, 0.95) 0%, rgba(224, 242, 254, 0.95) 100%);
+  border-color: #409eff;
+  box-shadow: 0 8px 25px rgba(64, 158, 255, 0.25);
+}
+
+.template-item.active::before {
+  opacity: 1;
+}
+
+.template-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.template-item:hover .template-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.4);
+}
+
+.template-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.template-item:hover .template-name {
+  color: #409eff;
+}
+
+.template-meta {
+  font-size: 12px;
+  margin: 0 0 12px 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.template-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.template-slide {
+.template-tags {
+  margin: 8px 0;
   display: flex;
-  flex-direction: column;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.template-tags .tag-item {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  transform: none;
+}
+
+.template-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #8b5cf6;
+  margin: 8px 0;
+}
+
+.usage-count, .rating {
+  display: flex;
   align-items: center;
-  padding: 30px 20px;
-  height: calc(100% - 40px);
-  margin: 20px;
-  border-radius: 16px;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.template-actions {
+  margin-top: 12px;
+}
+
+.template-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(5px);
+  margin-bottom: 8px;
+  min-height: 72px;
+}
+
+.template-card:hover {
+  background: rgba(245, 247, 250, 0.9);
+  border-color: rgba(228, 231, 237, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.template-card.active {
+  background: linear-gradient(135deg, rgba(236, 245, 255, 0.95) 0%, rgba(224, 242, 254, 0.95) 100%);
+  border-color: #409eff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
 }
 
 .template-slide:hover {
@@ -1164,68 +1623,108 @@ onMounted(async () => {
   box-shadow: 0 4px 15px rgba(64, 158, 255, 0.2);
 }
 
-.template-icon {
-  width: 48px;
-  height: 48px;
+.card-icon {
+  width: 32px;
+  height: 32px;
   background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 20px;
+  font-size: 16px;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-  transition: all 0.3s ease;
+  margin-top: 2px;
+  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.2);
+  transition: all 0.2s ease;
 }
 
-.template-item:hover .template-icon {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.4);
+.template-card:hover .card-icon {
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(64, 158, 255, 0.3);
 }
 
-.template-info {
+.card-content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.template-name {
-  font-size: 14px;
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title {
+  font-size: 13px;
   font-weight: 600;
   color: #2c3e50;
-  margin: 0 0 4px 0;
-  line-height: 1.4;
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.template-meta {
-  font-size: 12px;
-  color: #909399;
-  margin: 0 0 6px 0;
+.card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
-.template-desc {
-  font-size: 12px;
+.card-tags .el-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  height: 18px;
+  line-height: 16px;
+  border-radius: 9px;
+  transform: none;
+}
+
+.card-desc {
+  font-size: 11px;
   color: #606266;
-  margin: 0 0 8px 0;
-  line-height: 1.4;
+  margin: 0;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  max-height: 28px;
 }
 
-.template-stats {
+.card-stats {
   display: flex;
-  gap: 12px;
-  font-size: 11px;
+  gap: 8px;
+  font-size: 10px;
   color: #909399;
+  align-items: center;
+  margin-top: 2px;
 }
 
-.usage-count,
-.rating {
+.stat-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.stat-item:hover {
+  color: #409eff;
+}
+
+.stat-item .el-icon {
+  font-size: 12px;
+}
+
+.stat-item span {
+  font-size: 10px;
+  font-weight: 500;
 }
 
 /* 中间AI对话区域 */
@@ -1545,6 +2044,40 @@ onMounted(async () => {
   background-clip: content-box;
 }
 
+/* 模板样式增强 */
+.template-actions {
+  margin-top: 8px;
+  text-align: left;
+}
+
+/* 响应式网格布局 */
+@media (min-width: 1200px) {
+  .template-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .template-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .template-meta {
+    justify-content: center;
+  }
+  
+  .template-stats {
+    justify-content: center;
+  }
+  
+  .template-actions {
+    text-align: center;
+  }
+}
+
 /* 模板详情对话框样式 */
 .template-detail-content {
   padding: 20px 0;
@@ -1632,6 +2165,88 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* 紧凑详情对话框样式 */
+.compact-dialog {
+  border-radius: 8px;
+}
+
+.template-detail-compact {
+  padding: 8px 0;
+}
+
+.detail-header-compact {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.detail-header-compact h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.detail-tags-compact {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.detail-section-compact {
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 6px;
+}
+
+.detail-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.stats-row {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.stat-item-compact strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.tags-compact {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.prompt-preview {
+  font-size: 11px;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog-footer-compact {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 /* 模板标签样式 */

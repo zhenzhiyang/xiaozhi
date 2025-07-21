@@ -59,6 +59,27 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
     }
     
     const data = await response.json()
+    
+    // 转换后端响应格式到前端期望的格式
+    if (data && typeof data === 'object') {
+      // 处理列表响应
+      if ('code' in data && 'data' in data && 'message' in data) {
+        return {
+          success: data.code === 200,
+          data: data.data,
+          message: data.message
+        } as T
+      }
+      // 处理详情响应
+      else if ('code' in data && 'data' in data && 'message' in data) {
+        return {
+          success: data.code === 200,
+          data: data.data,
+          message: data.message
+        } as T
+      }
+    }
+    
     return data
   } catch (error) {
     console.error('API request failed:', error)

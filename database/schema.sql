@@ -1,8 +1,6 @@
 -- AI教案工具数据库初始化脚本
--- 创建数据库
-CREATE DATABASE IF NOT EXISTS ai_teaching_hub DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE ai_teaching_hub;
+-- 使用现有数据库
+USE ai_thub;
 
 -- 用户表
 CREATE TABLE IF NOT EXISTS users (

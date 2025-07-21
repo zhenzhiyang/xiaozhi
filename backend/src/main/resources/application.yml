@@ -22,9 +22,9 @@ spring:
     default-property-inclusion: non_null
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/ai_teaching_hub?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/ai_thub?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
     username: root
-    password: root
+    password: Ying1223
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
@@ -117,18 +117,18 @@ cors:
 spring:
   profiles: dev
   datasource:
-    url: jdbc:mysql://localhost:3306/ai_teaching_hub?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/ai_thub?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
     username: root
-    password: root
+    password: Ying1223
 
 ---
 # 生产环境配置
 spring:
   profiles: prod
   datasource:
-    url: jdbc:mysql://localhost:3306/ai_teaching_hub?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/ai_thub?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=GMT%2B8
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    password: ${DB_PASSWORD:Ying1223}
   redis:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}

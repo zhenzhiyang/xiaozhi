@@ -580,57 +580,17 @@ export function getTemplatePrompt(templateId: number, params: GenerateRequest): 
  */
 export async function* generateLessonStream(request: GenerateRequest): AsyncGenerator<StreamResponse> {
   try {
-    // 在没有后端的情况下，使用模拟数据进行演示
-    const mockContent = generateMockLessonContent(request)
-    const words = mockContent.split('')
-    
-    for (let i = 0; i < words.length; i++) {
-      // 模拟流式输出，每次输出几个字符
-      const chunk = words.slice(i, i + 5).join('')
-      if (chunk) {
-        yield { content: chunk, done: false }
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 15))
-      }
-      i += 4 // 跳过已输出的字符
-    }
-    
-    yield { content: '', done: true }
-    return
-    
-    // 以下是真实的API调用代码（当有后端时使用）
-    const prompt = getTemplatePrompt(request.templateId, request)
-    const finalPrompt = request.additionalRequirements 
-      ? `${prompt}\n\n额外要求：${request.additionalRequirements}`
-      : prompt
-
-    const response = await fetch(DEEPSEEK_API_URL, {
+    // 使用真实的后端API调用 - 优先使用模板数据库中的提示词
+    const response = await fetch('http://localhost:8080/api/ai/generate/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
       },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'system',
-            content: '你是一位专业的教学设计专家，擅长制作高质量的教案。请根据用户提供的信息，生成结构清晰、内容详实、格式规范的教案。教案应该具有很强的实用性和可操作性。输出格式使用Markdown，确保层次分明、条理清楚。'
-          },
-          {
-            role: 'user',
-            content: finalPrompt
-          }
-        ],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 4000
-      })
+      body: JSON.stringify(request)
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`API请求失败: ${response.status} ${response.statusText}. ${errorText}`)
+      throw new Error(`API请求失败: ${response.status} ${response.statusText}`)
     }
 
     const reader = response.body?.getReader()
@@ -640,66 +600,149 @@ export async function* generateLessonStream(request: GenerateRequest): AsyncGene
 
     const decoder = new TextDecoder()
     let buffer = ''
-    let retryCount = 0
-    const maxRetries = 3
 
     while (true) {
-      try {
-        const { done, value } = await reader!.read()
-        
-        if (done) {
-          yield { content: '', done: true }
-          break
-        }
+      const { done, value } = await reader.read()
+      
+      if (done) {
+        yield { content: '', done: true }
+        break
+      }
 
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim()
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6).trim()
+          
+          if (data === '[DONE]') {
+            yield { content: '', done: true }
+            return
+          }
+
+          try {
+            const parsed = JSON.parse(data)
+            const content = parsed.content || ''
             
-            if (data === '[DONE]') {
-              yield { content: '', done: true }
-              return
+            if (content) {
+              yield { content, done: false }
             }
-
-            try {
-              const parsed = JSON.parse(data)
-              const content = parsed.choices?.[0]?.delta?.content || ''
-              
-              if (content) {
-                yield { content, done: false }
-              }
-            } catch (parseError) {
-              console.warn('解析SSE数据失败:', parseError, 'Data:', data)
-              continue
-            }
+          } catch (parseError) {
+            console.warn('解析SSE数据失败:', parseError, 'Data:', data)
+            continue
           }
         }
-        
-        retryCount = 0 // 重置重试计数
-      } catch (readError) {
-        console.error('读取流数据失败:', readError)
-        retryCount++
-        
-        if (retryCount >= maxRetries) {
-          throw new Error(`读取流数据失败，已重试${maxRetries}次`)
-        }
-        
-        // 短暂延迟后重试
-        await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
   } catch (error) {
-    console.error('生成教案流失败:', error)
-    const errorMessage = error instanceof Error ? error.message : '生成过程中发生未知错误'
+    console.error('后端API调用失败:', error)
     
-    yield { 
-      content: '', 
-      done: true, 
-      error: errorMessage
+    // 如果后端API失败，使用本地模板生成（仅作为降级方案）
+    const prompt = getTemplatePrompt(request.templateId, request)
+    const finalPrompt = request.additionalRequirements 
+      ? `${prompt}\n\n额外要求：${request.additionalRequirements}`
+      : prompt
+
+    try {
+      const fallbackResponse = await fetch(DEEPSEEK_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            {
+              role: 'system',
+              content: '你是一位专业的教学设计专家，擅长制作高质量的教案。请根据用户提供的信息，生成结构清晰、内容详实、格式规范的教案。教案应该具有很强的实用性和可操作性。输出格式使用Markdown，确保层次分明、条理清楚。'
+            },
+            {
+              role: 'user',
+              content: finalPrompt
+            }
+          ],
+          stream: true,
+          temperature: 0.7,
+          max_tokens: 4000
+        })
+      })
+
+      if (!fallbackResponse.ok) {
+        const errorText = await fallbackResponse.text()
+        throw new Error(`API请求失败: ${fallbackResponse.status} ${fallbackResponse.statusText}. ${errorText}`)
+      }
+
+      const fallbackReader = fallbackResponse.body?.getReader()
+      if (!fallbackReader) {
+        throw new Error('无法获取响应流')
+      }
+
+      const fallbackDecoder = new TextDecoder()
+      let fallbackBuffer = ''
+      let fallbackRetryCount = 0
+      const maxRetries = 3
+
+      while (true) {
+        try {
+          const { done, value } = await fallbackReader.read()
+          
+          if (done) {
+            yield { content: '', done: true }
+            break
+          }
+
+          fallbackBuffer += fallbackDecoder.decode(value, { stream: true })
+          const lines = fallbackBuffer.split('\n')
+          fallbackBuffer = lines.pop() || ''
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim()
+              
+              if (data === '[DONE]') {
+                yield { content: '', done: true }
+                return
+              }
+
+              try {
+                const parsed = JSON.parse(data)
+                const content = parsed.choices?.[0]?.delta?.content || ''
+                
+                if (content) {
+                  yield { content, done: false }
+                }
+              } catch (parseError) {
+                console.warn('解析SSE数据失败:', parseError, 'Data:', data)
+                continue
+              }
+            }
+          }
+          
+          fallbackRetryCount = 0 // 重置重试计数
+        } catch (readError) {
+          console.error('读取流数据失败:', readError)
+          fallbackRetryCount++
+          
+          if (fallbackRetryCount >= maxRetries) {
+            throw new Error(`读取流数据失败，已重试${maxRetries}次`)
+          }
+          
+          // 短暂延迟后重试
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+      }
+    } catch (error) {
+      console.error('生成教案流失败:', error)
+      const errorMessage = error instanceof Error ? error.message : '生成过程中发生未知错误'
+      
+      yield { 
+        content: '', 
+        done: true, 
+        error: errorMessage
+      }
     }
   }
 }
